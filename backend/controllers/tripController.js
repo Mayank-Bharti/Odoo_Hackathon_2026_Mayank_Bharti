@@ -91,6 +91,7 @@ exports.dispatchTrip = async (req, res) => {
 
     // Update Statuses
     trip.status = "Dispatched";
+    trip.dispatchedAt = Date.now();
     vehicle.status = "On Trip";
     driver.status = "On Trip";
 
@@ -121,14 +122,62 @@ exports.completeTrip = async (req, res) => {
     const vehicle = await Vehicle.findById(trip.vehicleId);
     const driver = await Driver.findById(trip.driverId);
 
-    if (vehicle) {
-      vehicle.status = "Available";
-      if (finalOdometer) vehicle.odometer = finalOdometer;
-      await vehicle.save();
-    }
+    // --- DYNAMIC ANALYTICS: SPEED & REWARDS ---
+    // User requested random math to simulate time elapsed for the hackathon demo.
+    // We will generate a random speed between 60 km/h and 120 km/h.
+    const calculatedSpeed = Math.floor(Math.random() * 61) + 60; // 60 to 120
+    console.log(`[Analytics] Trip ${trip._id} completed. Simulated Speed: ${calculatedSpeed} km/h`);
+
     if (driver) {
-      driver.status = "Available";
+      if (calculatedSpeed > 80) {
+        // Penalty for overspeeding
+        driver.safetyScore = Math.max(0, driver.safetyScore - 10);
+        driver.consecutiveSafeTrips = 0;
+        console.log(`[Analytics] Overspeeding! Driver ${driver.name} penalized -10 points.`);
+        
+        // Auto-suspend if score < 10
+        if (driver.safetyScore < 10) {
+          driver.status = "Suspended";
+          console.log(`[Analytics] Score below 10. Driver ${driver.name} is now Suspended.`);
+        } else {
+          driver.status = "Available";
+        }
+      } else {
+        // Safe driving reward
+        driver.consecutiveSafeTrips += 1;
+        if (driver.consecutiveSafeTrips >= 3) {
+          driver.safetyScore = Math.min(100, driver.safetyScore + 10);
+          driver.consecutiveSafeTrips = 0;
+          console.log(`[Analytics] Safe Driving Bonus! Driver ${driver.name} rewarded +10 points.`);
+        }
+        driver.status = "Available";
+      }
       await driver.save();
+    }
+
+    // --- DYNAMIC ANALYTICS: AUTO-MAINTENANCE ---
+    if (vehicle) {
+      if (finalOdometer) vehicle.odometer = Number(finalOdometer);
+      
+      // Check if maintenance threshold is crossed
+      if (vehicle.odometer >= vehicle.nextMaintenanceOdometer) {
+        console.log(`[Analytics] Vehicle ${vehicle.registrationNumber} crossed maintenance threshold!`);
+        vehicle.status = "In Shop";
+        vehicle.nextMaintenanceOdometer = vehicle.odometer + 5000;
+        
+        // Auto-create maintenance log
+        const Maintenance = require("../models/Maintenance");
+        const log = new Maintenance({
+          vehicleId: vehicle._id,
+          description: "Auto-generated: 5000km Odometer Limit Reached",
+          cost: 150, // Standard maintenance cost
+          status: "Active"
+        });
+        await log.save();
+      } else {
+        vehicle.status = "Available";
+      }
+      await vehicle.save();
     }
 
     // Automatically create a Fuel Expense record from this trip

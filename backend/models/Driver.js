@@ -20,7 +20,13 @@ const DriverSchema = new mongoose.Schema({
   contactNumber: String,
   safetyScore: {
     type: Number,
-    default: 100
+    default: 100,
+    min: 0,
+    max: 100
+  },
+  consecutiveSafeTrips: {
+    type: Number,
+    default: 0
   },
   status: {
     type: String,

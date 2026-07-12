@@ -49,6 +49,21 @@ const Vehicles = () => {
     }
   };
 
+  const updateStatus = async (id, newStatus) => {
+    if (newStatus === "Retired" && !window.confirm("Are you sure you want to retire this vehicle permanently?")) {
+      return;
+    }
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`http://localhost:5000/api/vehicles/${id}`, { status: newStatus }, {
+        headers: { "x-auth-token": token }
+      });
+      fetchVehicles();
+    } catch (err) {
+      alert("Error updating vehicle status");
+    }
+  };
+
   return (
     <div>
       <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
@@ -90,11 +105,12 @@ const Vehicles = () => {
               <th style={{ padding: '1rem' }}>Capacity (kg)</th>
               <th style={{ padding: '1rem' }}>Region</th>
               <th style={{ padding: '1rem' }}>Status</th>
+              <th style={{ padding: '1rem' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {vehicles.length === 0 ? (
-              <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>No vehicles registered yet.</td></tr>
+              <tr><td colSpan="7" style={{ padding: '2rem', textAlign: 'center' }}>No vehicles registered yet.</td></tr>
             ) : (
               vehicles.map(v => (
                 <tr key={v._id} style={{ borderBottom: '1px solid var(--border)' }}>
@@ -104,9 +120,14 @@ const Vehicles = () => {
                   <td style={{ padding: '1rem' }}>{v.maxLoadCapacity}</td>
                   <td style={{ padding: '1rem' }}>{v.region}</td>
                   <td style={{ padding: '1rem' }}>
-                    <span className="role-badge" style={{ backgroundColor: v.status === 'Available' ? 'rgba(34, 197, 94, 0.2)' : '', color: v.status === 'Available' ? '#22c55e' : '' }}>
+                    <span className="role-badge" style={{ backgroundColor: v.status === 'Available' ? 'rgba(34, 197, 94, 0.2)' : (v.status === 'Retired' ? 'rgba(100, 116, 139, 0.2)' : ''), color: v.status === 'Available' ? '#22c55e' : (v.status === 'Retired' ? '#94a3b8' : '') }}>
                       {v.status}
                     </span>
+                  </td>
+                  <td style={{ padding: '1rem' }}>
+                    {user?.role === "FleetManager" && v.status !== "Retired" && (
+                      <button onClick={() => updateStatus(v._id, "Retired")} style={{ background: '#64748b', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Retire</button>
+                    )}
                   </td>
                 </tr>
               ))

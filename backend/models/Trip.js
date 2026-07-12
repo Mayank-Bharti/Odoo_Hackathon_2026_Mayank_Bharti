@@ -19,6 +19,9 @@ const TripSchema = new mongoose.Schema({
     type: String,
     enum: ["Draft", "Dispatched", "Completed", "Cancelled"],
     default: "Draft"
+  },
+  dispatchedAt: {
+    type: Date
   }
 }, { timestamps: true });
 

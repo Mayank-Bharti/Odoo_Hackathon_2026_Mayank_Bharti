@@ -13,6 +13,10 @@ const VehicleSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  nextMaintenanceOdometer: {
+    type: Number,
+    default: 5000
+  },
   acquisitionCost: Number,
   region: {
     type: String,
