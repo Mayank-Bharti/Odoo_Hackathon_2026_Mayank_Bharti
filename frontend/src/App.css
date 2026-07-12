@@ -1,7 +1,7 @@
 body {
   font-family: "Playfair Display", serif;
   background: rgb(193, 169, 140);
-  //background: #fdf6ec;
+  background: #fdf6ec;
   color: #3e2723;
   margin: 0;
   padding: 1rem;
@@ -38,7 +38,7 @@ h1 {
 
 .product-card h3,
 p {
-  //color: black;
+  color: black;
   color: #3e2723;
 }
 
