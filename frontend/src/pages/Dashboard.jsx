@@ -41,6 +41,42 @@ const Dashboard = () => {
     document.body.removeChild(link);
   };
 
+  const handleExportPDF = () => {
+    if (!metrics) return;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>TransitOps Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+            h2 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; }
+            th { background-color: #f1f5f9; color: #334155; }
+            .highlight { color: #ef4444; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>TransitOps - Operational & Financial Report</h2>
+          <p>Generated on: ${new Date().toLocaleString()}</p>
+          <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Total Vehicles</td><td>${metrics.vehicleMetrics.total}</td></tr>
+            <tr><td>Active Vehicles</td><td>${metrics.vehicleMetrics.active}</td></tr>
+            <tr><td>Fleet Utilization</td><td>${metrics.vehicleMetrics.utilizationPercent}%</td></tr>
+            <tr><td>Total Operational Cost</td><td class="highlight">$${metrics.financialMetrics.totalOperationalCost}</td></tr>
+            <tr><td>Fuel Efficiency</td><td>${metrics.financialMetrics.fuelEfficiency} km/L</td></tr>
+          </table>
+          <script>
+            setTimeout(() => { window.print(); window.close(); }, 500);
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   if (loading) return <div>Loading Analytics...</div>;
 
   return (
@@ -59,7 +95,10 @@ const Dashboard = () => {
             <option value="South">South</option>
           </select>
           {(user?.role === "FleetManager" || user?.role === "FinancialAnalyst") && (
-            <button className="login-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }} onClick={handleExportCSV}>Export CSV</button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="login-btn" style={{ width: 'auto', padding: '0.5rem 1rem', background: '#64748b' }} onClick={handleExportCSV}>Export CSV</button>
+              <button className="login-btn" style={{ width: 'auto', padding: '0.5rem 1rem', background: '#ef4444' }} onClick={handleExportPDF}>Export PDF</button>
+            </div>
           )}
         </div>
       </header>
