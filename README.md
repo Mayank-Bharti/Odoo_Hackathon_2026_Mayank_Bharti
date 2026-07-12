@@ -96,7 +96,6 @@ Many logistics companies still rely on spreadsheets and manual logbooks to manag
 - **Frontend:** React (Vite) / Responsive web interface with Dark Mode.
 - **Backend:** Node.js, Express
 - **Database:** MongoDB Atlas
-- **System Architecture:** Timezone-aware system for precise logging across regions.
 
 ---
 
