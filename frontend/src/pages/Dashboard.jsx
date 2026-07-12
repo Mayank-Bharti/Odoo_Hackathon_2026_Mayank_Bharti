@@ -1,123 +1,116 @@
-// import { useEffect, useState } from "react";
-// import { Bar, Pie } from "react-chartjs-2";
-// import {
-//   Chart as ChartJS, ArcElement, BarElement, CategoryScale,
-//   LinearScale, Tooltip, Legend
-// } from "chart.js";
-// ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
+import { AuthContext } from "../context/AuthContext";
 
-// const browns = ["#8d6e63", "#a1887f", "#bcaaa4", "#d7ccc8", "#efebe9"];
+const Dashboard = () => {
+  const { user } = useContext(AuthContext);
+  const [metrics, setMetrics] = useState(null);
+  const [regionFilter, setRegionFilter] = useState("");
+  const [loading, setLoading] = useState(true);
 
-// export default function Dashboard() {
-//   const [top, setTop] = useState([]);
-//   const [byCity, setByCity] = useState([]);
-
-//   useEffect(() => {
-//     fetch("http://localhost:5000/analytics/top-products")
-//       .then(r => r.json()).then(setTop);
-
-//     fetch("http://localhost:5000/analytics/orders-city")
-//       .then(r => r.json()).then(setByCity);
-//   }, []);
-
-//   const barData = {
-//     labels: top.map(p => p.title),
-//     datasets: [{
-//       label: "Qty Sold",
-//       data: top.map(p => p.qtySold),
-//       backgroundColor: browns[0],
-//       borderRadius: 6,
-//     }]
-//   };
-
-//   const pieData = {
-//     labels: byCity.map(c => c._id),
-//     datasets: [{
-//       data: byCity.map(c => c.orders),
-//       backgroundColor: browns.slice(0, byCity.length),
-//       borderWidth: 1,
-//       borderColor: "#fff"
-//     }]
-//   };
-
-//   const barOpts = {
-//     plugins: { legend: { display: false } },
-//     scales: {
-//       x: { ticks: { color: "#3e2723" }, grid: { display: false } },
-//       y: { ticks: { color: "#3e2723" }, grid: { color: "#e0d7d1" } }
-//     },
-//     maintainAspectRatio: false
-//   };
-
-//   return (
-//     <div className="analytics-wrap">
-//       <h1 style={{ color: "#3e2723", marginLeft: "0.5rem", fontSize: "1.8rem", textAlign: "center" }}> Quick Analytics</h1>
-
-//       <div className="analytics-card" style={{ height: 300 }}>
-//         <Bar data={barData} options={barOpts} />
-//       </div>
-
-//       <div className="analytics-card" style={{ height: 340 }}>
-//         <Pie data={pieData} options={{ plugins:{ legend:{ position:"top", labels:{ color:"#3e2723" }}}}} />
-//       </div>
-//     </div>
-//   );
-// }
-
-import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import MetricCard from "../components/MetricCard";
-import DashboardGrid from "../components/DashboardGrid";
-import {
-  Chart as ChartJS, ArcElement, BarElement,
-  CategoryScale, LinearScale, Tooltip, Legend
-} from "chart.js";
-import { Bar, Pie } from "react-chartjs-2";
-import "../styles/dashboard.css";
-
-ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
-export default function AnalyticsDashboard() {
-  const [top, setTop]   = useState([]);
-  const [cities, setCities] = useState([]);
-  const [kpi, setKpi] = useState({ orders: 0, revenue: 0 });
-
-  /* fetch */
   useEffect(() => {
-    fetch("http://localhost:5000/analytics/top-products")
-      .then(r=>r.json()).then(setTop);
-    fetch("http://localhost:5000/analytics/orders-city")
-      .then(r=>r.json()).then(setCities);
-    fetch("http://localhost:5000/analytics/kpi")// create later
-      .then(r=>r.json()).then(setKpi);
-  }, []);
+    fetchDashboardData();
+  }, [regionFilter]);
 
-  /* chart data */
-  const barData = {
-    labels: top.map(p=>p.title),
-    datasets:[{ data: top.map(p=>p.qtySold), backgroundColor:"#8d6e63", borderRadius:8 }]
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const url = regionFilter ? `http://localhost:5000/api/analytics/dashboard?region=${regionFilter}` : `http://localhost:5000/api/analytics/dashboard`;
+      
+      const res = await axios.get(url, {
+        headers: { "x-auth-token": token }
+      });
+      setMetrics(res.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching dashboard data", err);
+      setLoading(false);
+    }
   };
-  const barOpts = { plugins:{legend:{display:false}}, maintainAspectRatio:false };
 
-  const pieData = {
-    labels: cities.map(c=>c._id),
-    datasets:[{ data: cities.map(c=>c.orders), backgroundColor:["#6d4c41","#a1887f","#d7ccc8","#efebe9"] }]
+  const handleExportCSV = () => {
+    if (!metrics) return;
+    const csvContent = `data:text/csv;charset=utf-8,Metric,Value\nTotal Vehicles,${metrics.vehicleMetrics.total}\nActive Vehicles,${metrics.vehicleMetrics.active}\nFleet Utilization,${metrics.vehicleMetrics.utilizationPercent}%\nTotal Operational Cost,$${metrics.financialMetrics.totalOperationalCost}\nFuel Efficiency,${metrics.financialMetrics.fuelEfficiency} km/L`;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "transitops_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+
+  if (loading) return <div>Loading Analytics...</div>;
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar />
-
-      <main className="dashboard-content">
-        <div className="metric-row">
-          <MetricCard value={kpi.orders} label="Total Orders" />
-          {/* <MetricCard value={`₹${kpi.revenue}`} label="Revenue" /> */}
-          <MetricCard value={`$${943}`} label="Revenue" />
-          <MetricCard value={top.length} label="Products Sold" />
+    <div>
+      <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <h1>Overview Dashboard</h1>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <select 
+            value={regionFilter} 
+            onChange={(e) => setRegionFilter(e.target.value)}
+            style={{ padding: '0.5rem', borderRadius: '4px', background: '#0f172a', color: 'white', border: '1px solid var(--border)' }}
+          >
+            <option value="">All Regions</option>
+            <option value="HQ">HQ</option>
+            <option value="North">North</option>
+            <option value="South">South</option>
+          </select>
+          <button className="login-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }} onClick={handleExportCSV}>Export CSV</button>
         </div>
+      </header>
 
-        <DashboardGrid barData={barData} barOpts={barOpts} pieData={pieData} />
-      </main>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div className="login-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+          <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Fleet Utilization</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)', margin: '10px 0' }}>{metrics.vehicleMetrics.utilizationPercent}%</p>
+        </div>
+        <div className="login-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+          <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Active Vehicles</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '10px 0' }}>{metrics.vehicleMetrics.active} / {metrics.vehicleMetrics.total}</p>
+        </div>
+        <div className="login-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+          <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Vehicles in Shop</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ef4444', margin: '10px 0' }}>{metrics.vehicleMetrics.inMaintenance}</p>
+        </div>
+        <div className="login-card" style={{ padding: '1.5rem', textAlign: 'center' }}>
+          <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Drivers on Duty</h3>
+          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#22c55e', margin: '10px 0' }}>{metrics.driverMetrics.onDuty}</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <div className="login-card">
+          <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Trip Status</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+              <span>Dispatched (Active)</span>
+              <span style={{ fontWeight: 'bold' }}>{metrics.tripMetrics.active}</span>
+            </li>
+            <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+              <span>Draft (Pending)</span>
+              <span style={{ fontWeight: 'bold' }}>{metrics.tripMetrics.pending}</span>
+            </li>
+          </ul>
+        </div>
+        
+        <div className="login-card">
+          <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Financials</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+              <span>Total Operational Cost</span>
+              <span style={{ fontWeight: 'bold', color: '#ef4444' }}>${metrics.financialMetrics.totalOperationalCost}</span>
+            </li>
+            <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+              <span>Fuel Efficiency</span>
+              <span style={{ fontWeight: 'bold', color: '#3b82f6' }}>{metrics.financialMetrics.fuelEfficiency} km/L</span>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

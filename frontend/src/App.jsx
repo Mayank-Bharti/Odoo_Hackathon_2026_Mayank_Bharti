@@ -1,11 +1,17 @@
 import React, { useContext } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, Outlet } from "react-router-dom";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Vehicles from "./pages/Vehicles";
+import Drivers from "./pages/Drivers";
+import Trips from "./pages/Trips";
+import Maintenance from "./pages/Maintenance";
+import Expenses from "./pages/Expenses";
+import Dashboard from "./pages/Dashboard";
 
-const DashboardPlaceholder = () => {
+const Layout = () => {
   const { user, logout } = useContext(AuthContext);
   return (
     <div className="dashboard-layout">
@@ -17,6 +23,8 @@ const DashboardPlaceholder = () => {
             <li><Link to="/vehicles">Vehicles</Link></li>
             <li><Link to="/drivers">Drivers</Link></li>
             <li><Link to="/trips">Trips</Link></li>
+            <li><Link to="/maintenance">Maintenance</Link></li>
+            <li><Link to="/expenses">Expenses</Link></li>
           </ul>
         </nav>
         <div className="user-info">
@@ -26,14 +34,7 @@ const DashboardPlaceholder = () => {
         </div>
       </aside>
       <main className="main-content">
-        <header>
-          <h1>Overview</h1>
-        </header>
-        <div className="content-area">
-          <div className="kpi-card">Active Vehicles: 12</div>
-          <div className="kpi-card">Available Drivers: 8</div>
-          <div className="kpi-card">Active Trips: 4</div>
-        </div>
+        <Outlet />
       </main>
     </div>
   );
@@ -48,11 +49,14 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<DashboardPlaceholder />} />
-            {/* Future routes will go here */}
-            <Route path="/vehicles" element={<div>Vehicles Page</div>} />
-            <Route path="/drivers" element={<div>Drivers Page</div>} />
-            <Route path="/trips" element={<div>Trips Page</div>} />
+            <Route element={<Layout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/vehicles" element={<Vehicles />} />
+              <Route path="/drivers" element={<Drivers />} />
+              <Route path="/trips" element={<Trips />} />
+              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/expenses" element={<Expenses />} />
+            </Route>
           </Route>
         </Routes>
       </Router>

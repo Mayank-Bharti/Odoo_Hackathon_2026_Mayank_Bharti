@@ -14,6 +14,10 @@ const VehicleSchema = new mongoose.Schema({
     default: 0
   },
   acquisitionCost: Number,
+  region: {
+    type: String,
+    default: "HQ"
+  },
   status: {
     type: String,
     enum: ["Available", "On Trip", "In Shop", "Retired"],

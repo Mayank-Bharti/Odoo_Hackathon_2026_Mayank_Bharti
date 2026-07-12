@@ -24,9 +24,21 @@ const Trip = require("./models/Trip");
 
 // Import Routes
 const authRoutes = require("./routes/authRoutes");
+const vehicleRoutes = require("./routes/vehicleRoutes");
+const driverRoutes = require("./routes/driverRoutes");
+const tripRoutes = require("./routes/tripRoutes");
+const maintenanceRoutes = require("./routes/maintenanceRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 
 // Mount Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/trips", tripRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

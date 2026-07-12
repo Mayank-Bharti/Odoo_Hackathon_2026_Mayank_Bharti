@@ -26,6 +26,22 @@ exports.register = async (req, res) => {
 
     await user.save();
 
+    // Dynamic Profile Creation based on Role
+    if (user.role === "Driver") {
+      const Driver = require("../models/Driver");
+      const { name, licenseNumber, licenseCategory, licenseExpiryDate, contactNumber } = req.body;
+      
+      const newDriver = new Driver({
+        userId: user._id,
+        name: name || email.split('@')[0], // Fallback if name is missing
+        licenseNumber: licenseNumber || `TEMP-${Date.now()}`,
+        licenseCategory: licenseCategory || "Class B",
+        licenseExpiryDate: licenseExpiryDate || new Date(Date.now() + 31536000000), // Default 1 yr
+        contactNumber: contactNumber || "0000000000"
+      });
+      await newDriver.save();
+    }
+
     // Generate token
     const payload = {
       user: {
