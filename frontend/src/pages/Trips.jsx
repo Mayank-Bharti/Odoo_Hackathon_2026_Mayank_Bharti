@@ -110,24 +110,28 @@ const Trips = () => {
         <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-              <th style={{ padding: '1rem' }}>Route</th>
+              <th style={{ padding: '1rem' }}>Source</th>
+              <th style={{ padding: '1rem' }}>Destination</th>
               <th style={{ padding: '1rem' }}>Vehicle</th>
               <th style={{ padding: '1rem' }}>Driver</th>
               <th style={{ padding: '1rem' }}>Cargo (kg)</th>
+              <th style={{ padding: '1rem' }}>Distance (km)</th>
               <th style={{ padding: '1rem' }}>Status</th>
               <th style={{ padding: '1rem' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {trips.length === 0 ? (
-              <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>No trips found.</td></tr>
+              <tr><td colSpan="8" style={{ padding: '2rem', textAlign: 'center' }}>No trips found.</td></tr>
             ) : (
               trips.map(t => (
                 <tr key={t._id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1rem' }}>{t.source} &rarr; {t.destination}</td>
+                  <td style={{ padding: '1rem' }}>{t.source}</td>
+                  <td style={{ padding: '1rem' }}>{t.destination}</td>
                   <td style={{ padding: '1rem' }}>{t.vehicleId?.registrationNumber || 'N/A'}</td>
                   <td style={{ padding: '1rem' }}>{t.driverId?.name || 'N/A'}</td>
                   <td style={{ padding: '1rem' }}>{t.cargoWeight}</td>
+                  <td style={{ padding: '1rem' }}>{t.plannedDistance}</td>
                   <td style={{ padding: '1rem' }}>
                     <span className="role-badge">{t.status}</span>
                   </td>

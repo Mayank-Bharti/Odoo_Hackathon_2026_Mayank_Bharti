@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const Expenses = () => {
+  const { user } = useContext(AuthContext);
   const [expenses, setExpenses] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-  const { user } = useContext(AuthContext);
 
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ vehicleId: "", type: "Fuel", cost: "", liters: "" });
+
+  if (user?.role === "Driver" || user?.role === "SafetyOfficer") {
+    return <Navigate to="/" />;
+  }
 
   useEffect(() => {
     fetchExpenses();

@@ -19,12 +19,22 @@ const Layout = () => {
         <h2>TransitOps</h2>
         <nav>
           <ul>
-            <li><Link to="/">Dashboard</Link></li>
-            <li><Link to="/vehicles">Vehicles</Link></li>
-            <li><Link to="/drivers">Drivers</Link></li>
-            <li><Link to="/trips">Trips</Link></li>
-            <li><Link to="/maintenance">Maintenance</Link></li>
-            <li><Link to="/expenses">Expenses</Link></li>
+            <li><Link to="/">Overview</Link></li>
+            {user?.role === "FleetManager" && (
+              <li><Link to="/vehicles">Vehicles</Link></li>
+            )}
+            {(user?.role === "FleetManager" || user?.role === "SafetyOfficer") && (
+              <li><Link to="/drivers">Drivers</Link></li>
+            )}
+            {(user?.role === "FleetManager" || user?.role === "Driver") && (
+              <li><Link to="/trips">Trips</Link></li>
+            )}
+            {(user?.role === "FleetManager" || user?.role === "FinancialAnalyst") && (
+              <li><Link to="/maintenance">Maintenance</Link></li>
+            )}
+            {(user?.role === "FleetManager" || user?.role === "FinancialAnalyst") && (
+              <li><Link to="/expenses">Expenses</Link></li>
+            )}
           </ul>
         </nav>
         <div className="user-info">

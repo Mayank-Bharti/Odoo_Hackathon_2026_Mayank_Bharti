@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -57,7 +58,9 @@ const Dashboard = () => {
             <option value="North">North</option>
             <option value="South">South</option>
           </select>
-          <button className="login-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }} onClick={handleExportCSV}>Export CSV</button>
+          {(user?.role === "FleetManager" || user?.role === "FinancialAnalyst") && (
+            <button className="login-btn" style={{ width: 'auto', padding: '0.5rem 1rem' }} onClick={handleExportCSV}>Export CSV</button>
+          )}
         </div>
       </header>
 
@@ -95,19 +98,21 @@ const Dashboard = () => {
           </ul>
         </div>
         
-        <div className="login-card">
-          <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Financials</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
-              <span>Total Operational Cost</span>
-              <span style={{ fontWeight: 'bold', color: '#ef4444' }}>${metrics.financialMetrics.totalOperationalCost}</span>
-            </li>
-            <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
-              <span>Fuel Efficiency</span>
-              <span style={{ fontWeight: 'bold', color: '#3b82f6' }}>{metrics.financialMetrics.fuelEfficiency} km/L</span>
-            </li>
-          </ul>
-        </div>
+        {(user?.role === "FleetManager" || user?.role === "FinancialAnalyst") && (
+          <div className="login-card">
+            <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Financials</h3>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+                <span>Total Operational Cost</span>
+                <span style={{ fontWeight: 'bold', color: '#ef4444' }}>${metrics.financialMetrics.totalOperationalCost}</span>
+              </li>
+              <li style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+                <span>Fuel Efficiency</span>
+                <span style={{ fontWeight: 'bold', color: '#3b82f6' }}>{metrics.financialMetrics.fuelEfficiency} km/L</span>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
